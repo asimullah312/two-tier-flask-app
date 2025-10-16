@@ -1,0 +1,11 @@
+# Ignore MySQL data
+mysql-data
+
+# Ignore unnecessary files
+*.log
+.git
+.gitignore
+node_modules
+__pycache__
+*.pyc
+.env
