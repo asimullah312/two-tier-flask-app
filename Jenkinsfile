@@ -24,10 +24,10 @@ pipeline {
                 echo 'Deploying application using Docker Compose...'
                 script {
                     // Stop old containers (if running)
-                    sh 'docker compose down || true'
+                    sh 'docker-compose down || true'
 
                     // Start new containers in detached mode
-                    sh 'docker compose up -d'
+                    sh 'docker-compose up -d'
                 }
             }
         }
