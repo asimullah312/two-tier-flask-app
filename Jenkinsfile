@@ -3,6 +3,25 @@ pipeline {
 
     stages {
 
+        stage('Pre-Cleanup & Permission Fix') {
+            steps {
+                echo '🧹 Fixing permissions and cleaning old containers...'
+                script {
+                    // Stop and remove all old containers (ignore errors)
+                    sh '''
+                    docker stop $(docker ps -aq) || true
+                    docker rm $(docker ps -aq) || true
+                    '''
+
+                    // Fix workspace ownership and permissions automatically
+                    sh '''
+                    sudo chown -R $(whoami):$(whoami) $WORKSPACE || true
+                    sudo chmod -R 777 $WORKSPACE || true
+                    '''
+                }
+            }
+        }
+
         stage('Clone Repository') {
             steps {
                 echo '🌀 Cleaning old code but keeping MySQL data safe...'
@@ -34,7 +53,11 @@ pipeline {
                     sh 'docker compose down || true'
 
                     // ✅ Start new containers with latest image
-                    sh 'docker compose up -d'
+                    sh '''
+                    export UID=$(id -u)
+                    export GID=$(id -g)
+                    docker compose up -d
+                    '''
                 }
             }
         }
