@@ -5,20 +5,22 @@ pipeline {
 
         stage('Clone Repository') {
             steps {
-                echo '🌀 Cleaning old workspace and cloning latest code...'
-                // ✅ Remove old files to ensure no cached HTML or code
-                deleteDir()
+                echo '🌀 Cleaning old code but keeping MySQL data safe...'
+                script {
+                    // ✅ Delete all old files except MySQL data folder
+                    sh 'find . -mindepth 1 -maxdepth 1 ! -name "mysql-data" -exec rm -rf {} +'
+                }
 
-                // ✅ Always pull the latest code from GitHub
+                // ✅ Pull latest code from GitHub
                 git url: 'https://github.com/asimullah312/two-tier-flask-app.git', branch: 'master'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo '🐳 Building fresh Docker image...'
+                echo '🐳 Building Docker image (fresh build, no cache)...'
                 script {
-                    // ✅ Force rebuild without cache so new HTML changes apply
+                    // ✅ Force rebuild to include new code changes
                     sh 'docker build --no-cache -t two-tier-flask-app .'
                 }
             }
@@ -28,13 +30,22 @@ pipeline {
             steps {
                 echo '🚀 Deploying application using Docker Compose...'
                 script {
-                    // ✅ Stop old containers (if running)
+                    // ✅ Stop old containers if running
                     sh 'docker compose down || true'
 
-                    // ✅ Start new containers in detached mode
+                    // ✅ Start new containers with latest image
                     sh 'docker compose up -d'
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Deployment Successful!'
+        }
+        failure {
+            echo '❌ Deployment Failed. Please check logs.'
         }
     }
 }
