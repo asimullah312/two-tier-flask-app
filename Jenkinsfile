@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'dev' }  // 👈 Run this pipeline on agent with label 'docker-agent'
 
     stages {
 
