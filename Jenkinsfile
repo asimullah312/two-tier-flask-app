@@ -26,16 +26,18 @@ pipeline {
             steps {
                 echo '🌀 Cleaning old code but keeping MySQL data safe...'
                 script {
+                    // Delete everything except mysql-data
                     sh 'find . -mindepth 1 -maxdepth 1 ! -name "mysql-data" -exec rm -rf {} +'
                 }
 
+                // Pull latest code from GitHub
                 git url: 'https://github.com/asimullah312/two-tier-flask-app.git', branch: 'master'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo '🐳 Building Docker image...'
+                echo '🐳 Building Docker image (fresh build, no cache)...'
                 script {
                     sh 'docker build --no-cache -t two-tier-flask-app .'
                 }
@@ -48,10 +50,10 @@ pipeline {
                 script {
                     sh '''
                         # Stop old containers and remove volumes to ensure MySQL can initialize
-                        docker compose down -v || true
+                        docker-compose down -v || true
 
                         # Start new containers
-                        docker compose up -d
+                        docker-compose up -d
                     '''
                 }
             }
